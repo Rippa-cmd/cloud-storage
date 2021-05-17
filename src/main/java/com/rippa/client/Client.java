@@ -13,106 +13,106 @@ import java.net.Socket;
  */
 
 public class Client extends JFrame {
-	private final Socket socket;
-	private final DataOutputStream out;
-	private final DataInputStream in;
+    private final Socket socket;
+    private final DataOutputStream out;
+    private final DataInputStream in;
 
-	public Client() throws IOException {
-		// init
-		socket = new Socket("localhost", 6789);
-		out = new DataOutputStream(socket.getOutputStream());
-		in = new DataInputStream(socket.getInputStream());
+    public Client() throws IOException {
+        // init
+        socket = new Socket("localhost", 6789);
+        out = new DataOutputStream(socket.getOutputStream());
+        in = new DataInputStream(socket.getInputStream());
 
-		// create form
-		setSize(300, 300);
-		JPanel panel = new JPanel(new GridLayout(2, 1));
+        // create form
+        setSize(300, 300);
+        JPanel panel = new JPanel(new GridLayout(2, 1));
 
-		JButton btnSend = new JButton("SEND");
-		JTextField textField = new JTextField();
+        JButton btnSend = new JButton("SEND");
+        JTextField textField = new JTextField();
 
-		btnSend.addActionListener(a -> {
-			String[] cmd = textField.getText().split(" ");
-			if ("upload".equals(cmd[0])) {
-				sendFile(cmd[1]);
-			} else if ("download".equals(cmd[0])) {
-				getFile(cmd[1]);
-			}
+        btnSend.addActionListener(a -> {
+            String[] cmd = textField.getText().split(" ");
+            if ("upload".equals(cmd[0])) {
+                sendFile(cmd[1]);
+            } else if ("download".equals(cmd[0])) {
+                getFile(cmd[1]);
+            }
 
-		});
+        });
 
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				super.windowClosing(e);
-				sendMessage("exit");
-			}
-		});
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                sendMessage("exit");
+            }
+        });
 
-		panel.add(textField);
-		panel.add(btnSend);
+        panel.add(textField);
+        panel.add(btnSend);
 
-		add(panel);
+        add(panel);
 
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setVisible(true);
-	}
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setVisible(true);
+    }
 
-	private void getFile(String filename) {
-		// TODO: 13.05.2021 downloading
-	}
+    private void getFile(String filename) {
+        // TODO: 13.05.2021 downloading
+    }
 
-	private void sendFile(String filename) {
-		try {
-			File file = new File("client/" + filename);
-			if (!file.exists()) {
-				throw new FileNotFoundException();
-			}
+    private void sendFile(String filename) {
+        try {
+            File file = new File("client/" + filename);
+            if (!file.exists()) {
+                throw new FileNotFoundException();
+            }
 
-			long fileLength = file.length();
-			FileInputStream fis = new FileInputStream(file);
+            long fileLength = file.length();
+            FileInputStream fis = new FileInputStream(file);
 
-			out.writeUTF("upload");
-			out.writeUTF(filename);
-			out.writeLong(fileLength);
+            out.writeUTF("upload");
+            out.writeUTF(filename);
+            out.writeLong(fileLength);
 
-			int read = 0;
-			byte[] buffer = new byte[8 * 1024];
-			while ((read = fis.read(buffer)) != -1) {
-				out.write(buffer, 0, read);
-			}
+            int read = 0;
+            byte[] buffer = new byte[8 * 1024];
+            while ((read = fis.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
 
-			out.flush();
+            out.flush();
 
-			String status = in.readUTF();
-			System.out.println("Sending status: " + status);
-		} catch (FileNotFoundException e) {
-			System.err.println("File not found - /client/" + filename);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+            String status = in.readUTF();
+            System.out.println("Sending status: " + status);
+        } catch (FileNotFoundException e) {
+            System.err.println("File not found - /client/" + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	/**
-	 * message sending
-	 * @param message String
-	 */
-	private void sendMessage(String message) {
-		try {
-			out.writeUTF(message);
-			String command = in.readUTF();
+    /**
+     * message sending
+     *
+     * @param message String
+     */
+    private void sendMessage(String message) {
+        try {
+            out.writeUTF(message);
+            String command = in.readUTF();
 //			if ("done".equalsIgnoreCase(command)) {
 //
 //			}
-			System.out.println(command);
-		} catch (EOFException eofException) {
-			System.err.println("Reading command error from " + socket.getInetAddress());
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+            System.out.println(command);
+        } catch (EOFException eofException) {
+            System.err.println("Reading command error from " + socket.getInetAddress());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	public static void main(String[] args) throws IOException {
-		new Client();
-	}
+    public static void main(String[] args) throws IOException {
+        new Client();
+    }
 }
