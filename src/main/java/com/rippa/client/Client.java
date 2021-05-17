@@ -78,7 +78,6 @@ public class Client extends JFrame {
 			int read = 0;
 			byte[] buffer = new byte[8 * 1024];
 			while ((read = fis.read(buffer)) != -1) {
-				System.out.println(read);
 				out.write(buffer, 0, read);
 			}
 
