@@ -23,7 +23,7 @@ public class ClientHandler implements Runnable {
                     uploading(out, in);
                 }
                 if ("download".equals(command)) {
-                    // TODO: 13.05.2021 downloading
+                    downloading(in, out);
                 }
                 if ("exit".equals(command)) {
                     out.writeUTF("DONE");
@@ -32,12 +32,39 @@ public class ClientHandler implements Runnable {
                     break;
                 }
                 System.out.println(command);
-                out.writeUTF(command);
+                //out.writeUTF(command); ИМХО лишнее, мешает корректной обработке статуса на клиентской стороне
             }
         } catch (SocketException socketException) {
             System.out.printf("Client %s disconnected\n", socket.getInetAddress());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * sending file to client side
+     */
+    private void downloading(DataInputStream in, DataOutputStream out) throws IOException {
+        try {
+            File file = new File("server/" + in.readUTF());
+            if (!file.exists()) {
+                throw new FileNotFoundException();
+            } else out.writeUTF("File found");
+
+            FileInputStream fis = new FileInputStream(file);
+            long fileLength = file.length();
+
+            out.writeLong(fileLength);
+
+            byte[] buffer = new byte[8 * 1024];
+            int read;
+            while ((read = fis.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            out.flush();
+            fis.close();
+        } catch (FileNotFoundException e) {
+            out.writeUTF("FNF");
         }
     }
 
